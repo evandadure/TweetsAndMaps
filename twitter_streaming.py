@@ -2,7 +2,10 @@
 
 # TO DO :
 # - méthode qui supprime les doublons dans la base de données
+# - récupérer les tweets en entier
 # - possibilité d'aller chercher des anciens tweets (pour ne pas reprendre les mêmes)
+# - modifier le schéma de bdd
+# - écrire dans le rapport qu'avec notre schéma, on peut rechercher d'autres mots clés à partir d'un mot clé d'un tweet (en regardant son contenu)
 
 
 
