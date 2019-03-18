@@ -155,7 +155,7 @@ def displayAllTweets(city="",keyword=""):
 
 
 #saveTweets("", 10000,True)
-displayAllTweets(city="Grenoble")
+displayAllTweets(city="Grenoblef")
 
 
 # =============================================================================
