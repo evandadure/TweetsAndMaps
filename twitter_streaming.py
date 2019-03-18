@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 
 # TO DO :
-# - méthode qui supprime les doublons dans la base de données
-# - récupérer les tweets en entier
-# - possibilité d'aller chercher des anciens tweets (pour ne pas reprendre les mêmes)
-# - modifier le schéma de bdd
 # - écrire dans le rapport qu'avec notre schéma, on peut rechercher d'autres mots clés à partir d'un mot clé d'un tweet (en regardant son contenu)
 
 
@@ -14,6 +10,7 @@
 import mysql.connector
 import tweepy
 import coords
+import tokenizer
 from datetime import datetime, timedelta
 try:
     import json
@@ -58,7 +55,7 @@ mydb = mysql.connector.connect(
   host="localhost",
   user="root",
   passwd="root",
-  database="isoc_tp_twitter"
+  database="tp_twitterosm"
 )
 mycursor = mydb.cursor()
 # =============================================================================
@@ -101,11 +98,19 @@ def centrePolygone(list_Longitude, list_Latitude):
     return [moyList(list_Longitude), moyList(list_Latitude)]
 
 
-def saveTweets(keyword, number_max,only_located):
+def addTweet(created_at, text, user_id, user_name, screen_name, latitude, longitude, searched_keyword, nearest_city, numero_tweet):
+    sql = "INSERT INTO tweet (created_at, text, user_id, user_name, screen_name, \
+        latitude, longitude, searched_keyword, nearest_city, numero_tweet) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+    val = (created_at, text, user_id, user_name, screen_name, latitude, longitude, searched_keyword, nearest_city, numero_tweet)
+    mycursor.execute(sql, val)
+    mydb.commit()
+
+
+def saveTweets(searched_word, number_max,only_located):
     #COORDS OF SOME FRENCH CITIES (ex : geocode="45.188529,5.724524,30km")
     #Grenoble : 45.188529,5.724524
     #Paris : 48.853,2.35
-    for status in tweepy.Cursor(api.search, q=keyword, geocode="45.188529,5.724524,30km").items(number_max):
+    for status in tweepy.Cursor(api.search, q=searched_word, geocode="45.188529,5.724524,30km").items(number_max):
         county="unknown"
         tweet = status._json
         tweet_id = tweet['id'] #the id of the tweet/retweet
@@ -130,17 +135,16 @@ def saveTweets(keyword, number_max,only_located):
                 longitude, latitude = (0,0)
             #only_located is set at True if the user wants to save only the located tweets (False if he wants to save all tweets)
             if not only_located or (only_located and longitude != 0):
-                sql = "INSERT INTO tweet (created_at, text, user_ID, user_name, screen_name, latitude, longitude, keyword,\
-                                            nearest_city, id_tweet) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-                val = (tweet_created_at, tweet_text, tweet_user_id, tweet_user_name, tweet_user_screenname, latitude, longitude, keyword, county, tweet_id)
-                mycursor.execute(sql, val)
-                mydb.commit()
+                addTweet(tweet_created_at, tweet_text, tweet_user_id, tweet_user_name,
+                         tweet_user_screenname, latitude, longitude, searched_word, county, tweet_id)
+
 
 def displayAllTweets(city="",keyword=""):
-    mycursor.execute("SELECT * FROM tweet WHERE nearest_city LIKE '%"+city+"%' AND keyword LIKE '%"+keyword+"%'")
+    mycursor.execute("SELECT * FROM tweet WHERE nearest_city LIKE '%"+city+"%' AND searched_keyword LIKE '%"+keyword+"%'")
     myresult = mycursor.fetchall()
     map = coords.create_map()
     for line in myresult:
+        #If there is a location (here we just try to check if there is a latitude):
         if line[6] != "0":
             addr_infos = coords.get_address(line[6], line[7])
             coords.add_marker(map, float(line[6]), float(line[7]), line[4], line[5], line[2],
@@ -150,8 +154,8 @@ def displayAllTweets(city="",keyword=""):
 
 
 
-#displayAllTweets(keyword="salut")
-saveTweets("", 10000,True)
+#saveTweets("", 10000,True)
+displayAllTweets(city="Grenoble")
 
 
 # =============================================================================
