@@ -23,3 +23,5 @@ def wordsToList(str):
     newstr = re.sub('\?+', '', newstr)
     return newstr.split()
 
+
+

@@ -136,6 +136,18 @@ def addKeywords(numero_tweet, city, wordList):
         mycursor.execute(sql,val)
         mydb.commit()
 
+def deleteQuestionMarksOnly():
+    for i in range(100):
+        str = ""
+        for j in range(i):
+            str += "?"
+        sql = "DELETE FROM keyword WHERE label LIKE '"+str+"';"
+        mycursor.execute(sql)
+        sql = "DELETE FROM word WHERE label LIKE '"+str+"';"
+        mycursor.execute(sql)
+        mydb.commit()
+
+
 def saveTweets(searched_word, number_max,only_located):
     #COORDS OF SOME FRENCH CITIES (ex : geocode="45.188529,5.724524,30km")
     #Grenoble : 45.188529,5.724524
@@ -184,8 +196,9 @@ def displayAllTweets(city="",keyword=""):
     map.save('map.html')
 
 
-saveTweets("", 1000000,True)
+#saveTweets("", 1000000,True)
 #displayAllTweets(city="Grenoble")
+deleteQuestionMarksOnly()
 
 
 # =============================================================================
