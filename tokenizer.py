@@ -12,6 +12,7 @@ def getKeyWords(str):
 
 def wordsToList(str):
     newstr = ""
+    str = re.sub(r'http\S+', '', str)
     str = str.lower()
     for i, char in enumerate(str[1:]):
         if(str[i].isalpha()):
@@ -19,4 +20,6 @@ def wordsToList(str):
         else:
             newstr+=" "
     newstr = re.sub(' +', ' ', newstr)
+    newstr = re.sub('\?+', '', newstr)
     return newstr.split()
+

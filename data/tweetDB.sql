@@ -34,9 +34,8 @@ CREATE TABLE `tweet` (
 --
 
 CREATE TABLE `city` (
-  `id_city` int(11) NOT NULL AUTO_INCREMENT,
   `city_name` varchar(280) NOT NULL,
-  PRIMARY KEY (id_city)
+  PRIMARY KEY (city_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
@@ -44,9 +43,8 @@ CREATE TABLE `city` (
 --
 
 CREATE TABLE `word` (
-  `id_word` int(11) NOT NULL AUTO_INCREMENT,
   `label` varchar(280) NOT NULL,
-  PRIMARY KEY (id_word)
+  PRIMARY KEY (label)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
@@ -54,14 +52,11 @@ CREATE TABLE `word` (
 --
 
 CREATE TABLE `keyword` (
-  `id_tweet` int(11) NOT NULL,
-  `id_city` int(11) NOT NULL,
-  `id_word` int(11) NOT NULL,
-  FOREIGN KEY 'id_tweet' REFERENCES tweet('id_tweet'),
-  FOREIGN KEY 'id_city' REFERENCES city('id_city'),
-  FOREIGN KEY 'id_word' REFERENCES word('id_word')
+  `numero_tweet` varchar(100) NOT NULL,
+  `city_name` varchar(280) NOT NULL,
+  `label` varchar(280) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
-ALTER TABLE keyword ADD PRIMARY KEY(id_tweet,id_word,id_city);
+ALTER TABLE keyword ADD PRIMARY KEY(numero_tweet,label,city_name);
 

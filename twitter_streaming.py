@@ -98,6 +98,18 @@ def centrePolygone(list_Longitude, list_Latitude):
     return [moyList(list_Longitude), moyList(list_Latitude)]
 
 
+def get_trends(WOEID):
+    trends1 = api.trends_place(WOEID) # WOEID of Paris : 615702
+    # trends1 is a list with only one element in it, which is a
+    # dict which we'll put in data.
+    data = trends1[0]
+    # grab the trends
+    trends = data['trends']
+    # grab the name from each trend
+    names = [trend['name'] for trend in trends]
+    return names
+
+
 def addTweet(created_at, text, user_id, user_name, screen_name, latitude, longitude, searched_keyword, nearest_city, numero_tweet):
     sql = "INSERT INTO tweet (created_at, text, user_id, user_name, screen_name, \
         latitude, longitude, searched_keyword, nearest_city, numero_tweet) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
@@ -105,17 +117,35 @@ def addTweet(created_at, text, user_id, user_name, screen_name, latitude, longit
     mycursor.execute(sql, val)
     mydb.commit()
 
+def addWord(word):
+    sql = "REPLACE INTO word (label) VALUES ('"+word+"')"
+    mycursor.execute(sql)
+    mydb.commit()
+
+def addCity(city):
+    sql = "REPLACE INTO city (city_name) VALUES ('"+city+"')"
+    mycursor.execute(sql)
+    mydb.commit()
+
+def addKeywords(numero_tweet, city, wordList):
+    addCity(city)
+    for word in wordList:
+        addWord(word)
+        sql = "REPLACE INTO keyword (numero_tweet,city_name,label) VALUES (%s, %s, %s)"
+        val = (numero_tweet, city, word)
+        mycursor.execute(sql,val)
+        mydb.commit()
 
 def saveTweets(searched_word, number_max,only_located):
     #COORDS OF SOME FRENCH CITIES (ex : geocode="45.188529,5.724524,30km")
     #Grenoble : 45.188529,5.724524
     #Paris : 48.853,2.35
-    for status in tweepy.Cursor(api.search, q=searched_word, geocode="45.188529,5.724524,30km").items(number_max):
+    for status in tweepy.Cursor(api.search, q=searched_word, tweet_mode='extended', geocode="45.188529,5.724524,30km").items(number_max):
         county="unknown"
         tweet = status._json
         tweet_id = tweet['id'] #the id of the tweet/retweet
         tweet_created_at = setDateTime(tweet['created_at']) # when the tweet posted
-        tweet_text = tweet['text'] # content of the tweet
+        tweet_text = tweet['full_text'] # content of the tweet
         tweet_user_id = tweet['user']['id'] # id of the user who posted the tweet
         tweet_user_name = tweet['user']['name'] # name of the user, e.g. "Wei Xu"
         tweet_user_screenname = tweet['user']['screen_name'] # name of the user account, e.g. "cocoweixu"
@@ -129,6 +159,8 @@ def saveTweets(searched_word, number_max,only_located):
                     addr_infos = coords.get_address(latitude, longitude)
                     if "county" in addr_infos["address"]:
                         county = addr_infos["address"]["county"]
+                        wordList = tokenizer.getKeyWords(tweet_text)
+                        addKeywords(tweet_id, county, wordList)
                 except:
                     pass
             else:
@@ -152,10 +184,8 @@ def displayAllTweets(city="",keyword=""):
     map.save('map.html')
 
 
-
-
-#saveTweets("", 10000,True)
-displayAllTweets(city="Grenoblef")
+saveTweets("", 1000000,True)
+#displayAllTweets(city="Grenoble")
 
 
 # =============================================================================
@@ -177,52 +207,4 @@ displayAllTweets(city="Grenoblef")
 # for tweet in tweets:
 #     print(tweet.text)
 # =============================================================================
-
-# code pour écrire dans un fichier texte le résultat d'une requete
-# =============================================================================
-# with open('twitter_stream_200tweets.json','w') as outfile:
-# #REQUETE
-# #-----------------------------------
-#     for status in tweepy.Cursor(api.home_timeline).items(50):
-#         print(status._json)
-# #-----------------------------------
-#         res = status._json
-#         json.dump(res, outfile)
-#         outfile.write("\n")
-
-# We use the file saved from last step as example
-
-# tweets_filename = 'twitter_stream_200tweets.json'
-# tweets_file = open(tweets_filename, "r")
-
-# for line in tweets_file:
-#     try:
-#         # Read in one line of the file, convert it into a json object
-#         tweet = json.loads(line.strip())
-#         if 'text' in tweet: # only messages contains 'text' field is a tweet
-#             print(tweet['id']) # This is the tweet's id
-#             print(tweet['created_at']) # when the tweet posted
-#             print(tweet['text']) # content of the tweet
-#
-#             print(tweet['user']['id']) # id of the user who posted the tweet
-#             print(tweet['user']['name']) # name of the user, e.g. "Wei Xu"
-#             print(tweet['user']['screen_name']) # name of the user account, e.g. "cocoweixu"
-#
-#             hashtags = []
-#             for hashtag in tweet['entities']['hashtags']:
-#                 hashtags.append(hashtag['text'])
-#             print(hashtags)
-#
-#     except:
-#         # read in a line is not in JSON format (sometimes error occured)
-#         continue
-# =============================================================================
-
-# code pour s'abonner à un autre user
-# =============================================================================
-# api.create_friendship('@ThomasB72832506')
-# =============================================================================
-
-
-
 
