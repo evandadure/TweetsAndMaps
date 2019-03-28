@@ -10,12 +10,33 @@ def getKeyWords(str):
             listKeyWords.append(word)
     return listKeyWords
 
+
+
+
 def wordsToList(str):
+    """Enlève tous les caractères non voulus, les pseudos, enlève les majuscules
+        les pseudos, et les liens.
+
+    Parameters
+    ----------
+    string : str
+        le contenu du tweet
+    Returns
+    -------
+        list :
+            liste de tous les mots après épuration
+    """ 
     newstr = ""
     str = re.sub(r'http\S+', '', str)
     str = str.lower()
+    pseudo = False
     for i, char in enumerate(str[1:]):
-        if(str[i].isalpha()):
+        if str[i] == "@":
+            pseudo = True
+        if not str[i].isalnum() and pseudo:
+            pseudo = False
+            
+        if(str[i].isalpha() and not pseudo):
             newstr+=str[i]
         else:
             newstr+=" "
