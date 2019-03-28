@@ -1,5 +1,7 @@
 import folium
 import geopy
+import json
+import urllib.request
 
 def create_map():
     return folium.Map(location=[47.07421, 2.4142873], zoom_start=6)
@@ -8,6 +10,27 @@ def get_address(lat,long):
     geolocator = geopy.Nominatim(user_agent="monAppTwitter")
     location = geolocator.reverse(str(lat)+','+str(long),addressdetails=True)
     return location.raw
+
+def is_in_Polygon():
+    #TO : 44880
+    #Grenoble : 80348
+    page = urllib.request.urlopen(
+        'http://polygons.openstreetmap.fr/get_geojson.py?id=102480&params=0')
+    letest = json.loads(str(page.read())[2:-3])
+    print(letest)
+    #tester si les coordonnées sont dans le bon ordre (d'arc en arc)
+    #print(pagejson["geometries"][0]["coordinates"][0][0])
+
+
+
+def getCenterCoords(ville,pays):
+    geolocator = geopy.Nominatim(user_agent="monAppTwitter")
+    location = geolocator.geocode(ville+","+pays)
+    print(location.raw)
+    return [location.latitude, location.longitude]
+
+print(getCenterCoords("Annecy","France"))
+is_in_Polygon()
 
 def add_marker(map,latitude,longitude,username,screenname,text,date, adr_display):
     description = "<strong>"+username+"(@"+screenname+")</strong> \
@@ -46,7 +69,7 @@ def add_marker(map,latitude,longitude,username,screenname,text,date, adr_display
 # # Vega data
 # vis = os.path.join('data', 'vis.json')
 #
-# # Geojson Data
+# Geojson Data
 # overlay = os.path.join('data', 'overlay.json')
 #
 #
