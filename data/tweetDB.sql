@@ -24,6 +24,11 @@ SET time_zone = "+01:00";
 
 -- --------------------------------------------------------
 
+DROP TABLE IF EXISTS city;
+DROP TABLE IF EXISTS word;
+DROP TABLE IF EXISTS tweet;
+DROP TABLE IF EXISTS keyword;
+
 --
 -- Structure de la table `city`
 --
@@ -13141,7 +13146,7 @@ INSERT INTO `keyword` (`numero_tweet`, `city_name`, `label`) VALUES
 --
 
 CREATE TABLE `tweet` (
-  `id_tweet` int(11) NOT NULL,
+  `numero_tweet` varchar(100) NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `text` varchar(280) DEFAULT NULL,
   `user_id` varchar(280) DEFAULT NULL,
@@ -13150,8 +13155,7 @@ CREATE TABLE `tweet` (
   `latitude` varchar(280) DEFAULT NULL,
   `longitude` varchar(280) DEFAULT NULL,
   `searched_keyword` varchar(280) DEFAULT NULL,
-  `nearest_city` varchar(200) DEFAULT NULL,
-  `numero_tweet` varchar(100) DEFAULT NULL
+  `nearest_city` varchar(200) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
@@ -22049,7 +22053,7 @@ ALTER TABLE `keyword`
 -- Index pour la table `tweet`
 --
 ALTER TABLE `tweet`
-  ADD PRIMARY KEY (`id_tweet`);
+  ADD PRIMARY KEY (`numero_tweet`);
 
 --
 -- Index pour la table `word`

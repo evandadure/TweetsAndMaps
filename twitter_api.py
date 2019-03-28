@@ -30,15 +30,15 @@ except ImportError:
 
 # Variables that contains the user credentials to access Twitter API
 
-# ACCESS_TOKEN = '1092775756990742528-f3jdO4dHk6mz74xelnaIR5DanAWPm6'
-# ACCESS_SECRET = 'ajiXNmSln042ivtOOTh9GYkh0vcJNZwiQAmZMuf6sRCtB'
-# CONSUMER_KEY = 'nazYTA9BgmjpZSB54whfr4gkF'
-# CONSUMER_SECRET = 'zOm049TtpKJ4zc36gqD3XV8xl4SYSvQJCz1AygEbDK0BVt5v37'
+#ACCESS_TOKEN = '1092775756990742528-f3jdO4dHk6mz74xelnaIR5DanAWPm6'
+#ACCESS_SECRET = 'ajiXNmSln042ivtOOTh9GYkh0vcJNZwiQAmZMuf6sRCtB'
+#CONSUMER_KEY = 'nazYTA9BgmjpZSB54whfr4gkF'
+#CONSUMER_SECRET = 'zOm049TtpKJ4zc36gqD3XV8xl4SYSvQJCz1AygEbDK0BVt5v37'
 
 ACCESS_TOKEN = '818456674507902977-CweXH1SJkOeyKLAc1EUnZ2JKSHpC83Z'
 ACCESS_SECRET = 'kLla8weNLy1tfEdwEIlUmz9g1tV91sO7VHE5dOhyrYLsL'
-CONSUMER_KEY = '5HmCS4zWFTa47hJHa3KKOknDE'
-CONSUMER_SECRET = 'pMKmFuHeY5Xzo4LOcGQIxCSo18GALolGfn927p5cKjpWeRMxWI'
+CONSUMER_KEY = 'cZQqU0bI8Du4OAr3vqZFGH17C'
+CONSUMER_SECRET = 'JuFRZeTaWVG48GYALBRDuaJHJr5LQVqBsFyDyyDxaUVYhu0rMz'
 
 # Setup tweepy to authenticate with Twitter credentials:
 
@@ -51,11 +51,23 @@ api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, 
 
 # CONNECTION TO THE DATABASE
 # =============================================================================
+# =============================================================================
+#   host="localhost",
+#   user="root",
+#   passwd="root",
+#   database="tp_twitterosm"
+#
+#   host="localhost",
+#   user="root",
+#   passwd="root",
+#   database="tp_twitterosm"
+# =============================================================================
 mydb = mysql.connector.connect(
-  host="localhost",
-  user="root",
-  passwd="root",
-  database="tp_twitterosm"
+  host="tp-epu.univ-savoie.fr",
+  port="3308",
+  user="personma",
+  passwd="rca8v7gd",
+  database="personma"
 )
 mycursor = mydb.cursor()
 # =============================================================================
@@ -110,10 +122,10 @@ def get_trends(WOEID):
     return names
 
 
-def addTweet(created_at, text, user_id, user_name, screen_name, latitude, longitude, searched_keyword, nearest_city, numero_tweet):
-    sql = "INSERT INTO tweet (created_at, text, user_id, user_name, screen_name, \
-        latitude, longitude, searched_keyword, nearest_city, numero_tweet) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-    val = (created_at, text, user_id, user_name, screen_name, latitude, longitude, searched_keyword, nearest_city, numero_tweet)
+def addTweet(numero_tweet, created_at, text, user_id, user_name, screen_name, latitude, longitude, searched_keyword, nearest_city):
+    sql = "INSERT INTO tweet (numero_tweet, created_at, text, user_id, user_name, screen_name, \
+        latitude, longitude, searched_keyword, nearest_city) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+    val = (numero_tweet, created_at, text, user_id, user_name, screen_name, latitude, longitude, searched_keyword, nearest_city)
     mycursor.execute(sql, val)
     mydb.commit()
 
@@ -179,8 +191,11 @@ def saveTweets(searched_word, number_max,only_located):
                 longitude, latitude = (0,0)
             #only_located is set at True if the user wants to save only the located tweets (False if he wants to save all tweets)
             if not only_located or (only_located and longitude != 0):
-                addTweet(tweet_created_at, tweet_text, tweet_user_id, tweet_user_name,
-                         tweet_user_screenname, latitude, longitude, searched_word, county, tweet_id)
+                try:
+                    addTweet(tweet_id, tweet_created_at, tweet_text, tweet_user_id, tweet_user_name,
+                             tweet_user_screenname, latitude, longitude, searched_word, county)                    
+                except:
+                    pass
 
 
 def displayAllTweets(city="",keyword=""):
@@ -196,9 +211,9 @@ def displayAllTweets(city="",keyword=""):
     map.save('map.html')
 
 
-#saveTweets("", 1000000,True)
+saveTweets("", 100000,True)
 #displayAllTweets(city="Grenoble")
-deleteQuestionMarksOnly()
+#deleteQuestionMarksOnly()
 
 
 # =============================================================================
