@@ -8,6 +8,8 @@
 
 # Import the necessary package to process data in JSON format
 import mysql.connector
+import os
+import folium
 import tweepy
 import coords
 import tokenizer
@@ -52,22 +54,17 @@ api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, 
 # CONNECTION TO THE DATABASE
 # =============================================================================
 # =============================================================================
-#   host="localhost",
-#   user="root",
-#   passwd="root",
-#   database="tp_twitterosm"
-#
-#   host="localhost",
-#   user="root",
-#   passwd="root",
-#   database="tp_twitterosm"
+# host = "tp-epu.univ-savoie.fr",
+# port = "3308",
+# user = "personma",
+# passwd = "rca8v7gd",
+# database = "personma"
 # =============================================================================
 mydb = mysql.connector.connect(
-  host="tp-epu.univ-savoie.fr",
-  port="3308",
-  user="personma",
-  passwd="rca8v7gd",
-  database="personma"
+      host="localhost",
+      user="root",
+      passwd="root",
+      database="tp_twitterosm"
 )
 mycursor = mydb.cursor()
 # =============================================================================
@@ -160,7 +157,7 @@ def deleteQuestionMarksOnly():
         mydb.commit()
 
 
-def saveTweets(searched_word, number_max,only_located):
+def saveTweets(searched_word="", number_max=10000000,only_located=True):
     #COORDS OF SOME FRENCH CITIES (ex : geocode="45.188529,5.724524,30km")
     #Grenoble : 45.188529,5.724524
     #Paris : 48.853,2.35
@@ -197,24 +194,24 @@ def saveTweets(searched_word, number_max,only_located):
                              tweet_user_screenname, latitude, longitude, searched_word, county)                    
                 except:
                     pass
+    #Certains mots et mots-clés enregistrés, notamment composés de caractères que MySQL ne sait pas gérer et remplace donc par des "?",
+    #sont supprimés grâce à la fonction suivante :
+    deleteQuestionMarksOnly()
 
 
-def displayAllTweets(city="",searched_word=""):
+def displayAllTweets(map, city="",searched_word=""):
     mycursor.execute("SELECT * FROM tweet WHERE nearest_city LIKE '%"+city+"%' AND searched_keyword LIKE '%"+searched_word+"%'")
     myresult = mycursor.fetchall()
-    map = coords.create_map()
     for line in myresult:
         #If there is a location (here we just try to check if there is a latitude):
         if line[6] != "0":
             addr_infos = coords.get_address(line[6], line[7])
             coords.add_marker(map, float(line[6]), float(line[7]), line[4], line[5], line[2],
                               str(line[1]), addr_infos["display_name"])
-    map.save('map.html')
 
-def displayAllTweetsCenter(city="",searched_word=""):
+def displayAllTweetsCenter(map, city="",country="",searched_word=""):
     mycursor.execute("SELECT * FROM tweet WHERE nearest_city LIKE '%"+city+"%' AND searched_keyword LIKE '%"+searched_word+"%'")
     myresult = mycursor.fetchall()
-    map = coords.create_map()
     for line in myresult:
         #If there is a location (here we just try to check if there is a latitude):
         if line[6] != "0":
@@ -225,16 +222,55 @@ def displayAllTweetsCenter(city="",searched_word=""):
                               str(line[1]), addr_infos["address"]["county"])
             except:
                 print("Couldn't find the address of the tweet", line[10])
-    map.save('map.html')
+
+
+def displayPolygonCity(map, city, country):
+    coordsPolygon = coords.get_polygon_city(city,country)
+    data = {}
+    data["type"] = "FeatureCollection"
+    data["features"] = []
+    data["features"].append({
+        "type": "Feature",
+        "properties": {},
+        "geometry": {
+            "type": "LineString",
+            "coordinates": coordsPolygon
+        }
+    })
+    with open('data/overlay.json', 'w') as outfile:
+        json.dump(data, outfile)
+
+    overlay = os.path.join('data', 'overlay.json')
+    folium.GeoJson(overlay, name=city).add_to(map)
 
 
 
-saveTweets("", 100000,True)
-#displayAllTweets(city="Grenoble")
-#deleteQuestionMarksOnly()
 
 
-# =============================================================================
+
+
+
+
+
+
+map = coords.create_map()
+displayAllTweets(map)
+displayPolygonCity(map, "Grenoble","France")
+# saveTweets()
+#displayAllTweetsCenter()
+# deleteQuestionMarksOnly()
+map.save('map.html')
+
+
+
+
+
+
+
+
+
+
+
 
 # REQUETES SELECT
 # =============================================================================
