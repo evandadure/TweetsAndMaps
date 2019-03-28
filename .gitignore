@@ -7,8 +7,11 @@ __pycache__/
 .ipython
 .matplotlib
 .spyder-py3
+.matplotlib
+.spyder-py3
 # C extensions
 *.so
+
 
 # Distribution / packaging
 .Python
