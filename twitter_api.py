@@ -164,7 +164,7 @@ def saveTweets(searched_word, number_max,only_located):
     #COORDS OF SOME FRENCH CITIES (ex : geocode="45.188529,5.724524,30km")
     #Grenoble : 45.188529,5.724524
     #Paris : 48.853,2.35
-    for status in tweepy.Cursor(api.search, q=searched_word, tweet_mode='extended', geocode="45.188529,5.724524,30km").items(number_max):
+    for status in tweepy.Cursor(api.search, q=searched_word, tweet_mode='extended',geocode="45.188529,5.724524,300km").items(number_max):
         county="unknown"
         tweet = status._json
         tweet_id = tweet['id'] #the id of the tweet/retweet
@@ -192,14 +192,15 @@ def saveTweets(searched_word, number_max,only_located):
             #only_located is set at True if the user wants to save only the located tweets (False if he wants to save all tweets)
             if not only_located or (only_located and longitude != 0):
                 try:
+                    print(tweet_text)
                     addTweet(tweet_id, tweet_created_at, tweet_text, tweet_user_id, tweet_user_name,
                              tweet_user_screenname, latitude, longitude, searched_word, county)                    
                 except:
                     pass
 
 
-def displayAllTweets(city="",keyword=""):
-    mycursor.execute("SELECT * FROM tweet WHERE nearest_city LIKE '%"+city+"%' AND searched_keyword LIKE '%"+keyword+"%'")
+def displayAllTweets(city="",searched_word=""):
+    mycursor.execute("SELECT * FROM tweet WHERE nearest_city LIKE '%"+city+"%' AND searched_keyword LIKE '%"+searched_word+"%'")
     myresult = mycursor.fetchall()
     map = coords.create_map()
     for line in myresult:
@@ -209,6 +210,23 @@ def displayAllTweets(city="",keyword=""):
             coords.add_marker(map, float(line[6]), float(line[7]), line[4], line[5], line[2],
                               str(line[1]), addr_infos["display_name"])
     map.save('map.html')
+
+def displayAllTweetsCenter(city="",searched_word=""):
+    mycursor.execute("SELECT * FROM tweet WHERE nearest_city LIKE '%"+city+"%' AND searched_keyword LIKE '%"+searched_word+"%'")
+    myresult = mycursor.fetchall()
+    map = coords.create_map()
+    for line in myresult:
+        #If there is a location (here we just try to check if there is a latitude):
+        if line[6] != "0":
+            try:
+                addr_infos = coords.get_address(line[6], line[7])
+                coordsCenterCity = coords.getCenterCoords(addr_infos["address"]["county"],addr_infos["address"]["country"])
+                coords.add_marker(map, coordsCenterCity[0], coordsCenterCity[1], line[4], line[5], line[2],
+                              str(line[1]), addr_infos["address"]["county"])
+            except:
+                print("Couldn't find the address of the tweet", line[10])
+    map.save('map.html')
+
 
 
 saveTweets("", 100000,True)
