@@ -7,7 +7,7 @@ import displays
 mydb,mycursor = database.connectMySQLDB("localhost","3306","root","root","tp_twitterosm")
 
 #Sauvegarde des tweets (selon des critères) dans la BDD
-twitter_api.saveTweets(mydb, mycursor,searched_word="", number_max=10000000,only_located=True)
+twitter_api.saveTweets(mydb, mycursor,searched_word="", number_max=10000000,only_located=True,city="Grenoble",country="France",radius="30")
 
 #Création d'une map vierge
 # map = displays.create_map()

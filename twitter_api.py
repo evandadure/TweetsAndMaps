@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 import tweepy
 import coords
 import tokenizer
@@ -14,15 +13,15 @@ except ImportError:
 
 # Variables that contains the user credentials to access Twitter API
 
-#ACCESS_TOKEN = '1092775756990742528-f3jdO4dHk6mz74xelnaIR5DanAWPm6'
-#ACCESS_SECRET = 'ajiXNmSln042ivtOOTh9GYkh0vcJNZwiQAmZMuf6sRCtB'
-#CONSUMER_KEY = 'nazYTA9BgmjpZSB54whfr4gkF'
-#CONSUMER_SECRET = 'zOm049TtpKJ4zc36gqD3XV8xl4SYSvQJCz1AygEbDK0BVt5v37'
+ACCESS_TOKEN = '1092775756990742528-f3jdO4dHk6mz74xelnaIR5DanAWPm6'
+ACCESS_SECRET = 'ajiXNmSln042ivtOOTh9GYkh0vcJNZwiQAmZMuf6sRCtB'
+CONSUMER_KEY = 'nazYTA9BgmjpZSB54whfr4gkF'
+CONSUMER_SECRET = 'zOm049TtpKJ4zc36gqD3XV8xl4SYSvQJCz1AygEbDK0BVt5v37'
 
-ACCESS_TOKEN = '818456674507902977-CweXH1SJkOeyKLAc1EUnZ2JKSHpC83Z'
-ACCESS_SECRET = 'kLla8weNLy1tfEdwEIlUmz9g1tV91sO7VHE5dOhyrYLsL'
-CONSUMER_KEY = 'cZQqU0bI8Du4OAr3vqZFGH17C'
-CONSUMER_SECRET = 'JuFRZeTaWVG48GYALBRDuaJHJr5LQVqBsFyDyyDxaUVYhu0rMz'
+# ACCESS_TOKEN = '818456674507902977-CweXH1SJkOeyKLAc1EUnZ2JKSHpC83Z'
+# ACCESS_SECRET = 'kLla8weNLy1tfEdwEIlUmz9g1tV91sO7VHE5dOhyrYLsL'
+# CONSUMER_KEY = 'cZQqU0bI8Du4OAr3vqZFGH17C'
+# CONSUMER_SECRET = 'JuFRZeTaWVG48GYALBRDuaJHJr5LQVqBsFyDyyDxaUVYhu0rMz'
 
 # Setup tweepy to authenticate with Twitter credentials:
 
@@ -45,11 +44,13 @@ def get_trends(WOEID):
     return names
 
 
-def saveTweets(mydb, mycursor,searched_word="", number_max=10000000,only_located=True):
+def saveTweets(mydb, mycursor,searched_word="", number_max=10000000,only_located=True,city="Grenoble",country="France",radius="30"):
     #COORDS OF SOME FRENCH CITIES (ex : geocode="45.188529,5.724524,30km")
     #Grenoble : 45.188529,5.724524
     #Paris : 48.853,2.35
-    for status in tweepy.Cursor(api.search, q=searched_word, tweet_mode='extended',geocode="45.188529,5.724524,30km").items(number_max):
+    lat,long = coords.getCenterCoords(city,country)
+    zoneRecherche = str(lat)+","+str(long)+","+radius+"km"
+    for status in tweepy.Cursor(api.search, q=searched_word, tweet_mode='extended',geocode=zoneRecherche).items(number_max):
         county="unknown"
         tweet = status._json
         tweet_id = tweet['id'] #the id of the tweet/retweet

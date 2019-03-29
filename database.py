@@ -57,9 +57,9 @@ def addCity(mydb, mycursor,city):
     mydb.commit()
 
 def addKeywords(mydb, mycursor,numero_tweet, city, wordList):
-    addCity(city)
+    addCity(mydb, mycursor,city)
     for word in wordList:
-        addWord(word)
+        addWord(mydb, mycursor,word)
         sql = "REPLACE INTO keyword (numero_tweet,city_name,label) VALUES (%s, %s, %s)"
         val = (numero_tweet, city, word)
         mycursor.execute(sql,val)
@@ -75,3 +75,11 @@ def deleteQuestionMarksOnly(mydb, mycursor):
         sql = "DELETE FROM word WHERE label LIKE '"+str+"';"
         mycursor.execute(sql)
         mydb.commit()
+
+def mostUsedKeywords(ville,pays):
+    pass
+# SELECT label, city_name,count(*)
+# FROM keyword
+# WHERE city_name like "Grenoble"
+# GROUP BY city_name,label
+# ORDER BY `count(*)` DESC
