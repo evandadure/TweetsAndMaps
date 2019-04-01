@@ -53,6 +53,3 @@ def wordsToList(str):
     return newstr.split()
 
 
-
-
-
