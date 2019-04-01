@@ -1,16 +1,22 @@
 import mysql.connector
 from datetime import datetime, timedelta
-
-# CONNECTION TO THE DATABASE
-# =============================================================================
-# host = "tp-epu.univ-savoie.fr",
-# port = "3308",
-# user = "personma",
-# passwd = "rca8v7gd",
-# database = "personma"
-# =============================================================================
+import time
 
 def connectMySQLDB(host,port,user,passwd,database):
+    """
+    Connects to your MySQL database.
+    ----------
+    Parameters :
+        - host (str) : the host name (default is localhost)
+        - port (str) : the port number (default with MySQL is 3306)
+        - user (str) : the database user name (default is root)
+        - passwd (str) : the database password (default is empty, I've set it to root)
+        - database (str) : the name of your database
+    Returns :
+        - mydb (mysql.connector.connection.MySQLConnection) : the database connection
+        - mycursor (mysql.connector.cursor.MySQLCursor) : a cursor of the connection
+            (both are returned in a 2-tuple)
+    """
     mydb = mysql.connector.connect(
     host=host,
     port=port,
@@ -22,27 +28,51 @@ def connectMySQLDB(host,port,user,passwd,database):
 
 def setDateTime(dateTweet):
     """
-    Fonction qui crée un datetime à partir d'une string de date (exemple "21/08/18"), et d'une string d'heure (exemple "13:37")
-    Parametres :
-        - date : String de la date
-        - heure : String de l'heure
-    Retourne :
-        d : la date (et son heure) dans le type datetime
+    Function that converts the tweet default date format to a date format compatible with MySQL databases (Python datetime)
+    For example, "Mon Apr 01 17:09:19 +0000 2019" will be converted in "2019-04-01 18:09:00" (We add one hour to the time
+    because we have UTC+1 in France)
+    ----------
+    Parameters :
+        - dateTweet (str) : the tweet's publication date (and time)
+    Returns :
+        - d (datetime.datetime) : a datetime object
     """
     monthsDic  = {"Jan":"01","Feb":"02","Mar":"03","Apr":"04","May":"05","Jun":"06","Jul":"07","Aug":"08","Sep":"09","Oct":"10","Nov":"11","Dec":"12"}
+    # We're getting the day,month,year,hour and minute from the tweet time to create a new datetime
     dateToString = dateTweet[8:10]+"/"+monthsDic[dateTweet[4:7]]+"/"+dateTweet[-2:]
     d = datetime.strptime(dateToString,"%d/%m/%y")
     h = dateTweet[dateTweet.find(':')-2:dateTweet.find(':')]
     m = dateTweet[dateTweet.find(':')+1:dateTweet.find(':')+3]
     d = d.replace(hour=int(h),minute=int(m))
+    # We add one hour to the time because we have UTC+1 in France
     d = d + timedelta(hours=1)
     return d
 
 
-def addTweet(mydb, mycursor,numero_tweet, created_at, text, user_id, user_name, screen_name, latitude, longitude, searched_keyword, nearest_city):
+def addTweet(mydb, mycursor, tweet_number, created_at, text, user_id, user_name, screen_name, latitude, longitude, searched_keyword, nearest_city):
+    """
+    Adds a tweet in the database
+    ----------
+    Parameters :
+        - mydb (mysql.connector.connection.MySQLConnection) : the database connection
+        - mycursor (mysql.connector.cursor.MySQLCursor) : a cursor of the connection
+        - tweet_number (str) : the tweet ID
+        - created_at (datetime.datetime) : the tweet's publication date and hour
+        - text (str) : the tweet's text
+        - user_id (str) : the tweet's user ID
+        - user_name (str) : the tweet's user name
+        - screen_name (str) : the tweet's user screen name
+        - latitude (float) : the latitude of the tweet's location
+        - longitude (float) : the longitude of the tweet's location
+        - searched_keyword (str) :
+    Returns :
+        - d (datetime.datetime) : a datetime object
+    """
+    print(type(user_id),type(latitude))
+    time.sleep(8000)
     sql = "INSERT INTO tweet (numero_tweet, created_at, text, user_id, user_name, screen_name, \
         latitude, longitude, searched_keyword, nearest_city) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-    val = (numero_tweet, created_at, text, user_id, user_name, screen_name, latitude, longitude, searched_keyword, nearest_city)
+    val = (tweet_number, created_at, text, user_id, user_name, screen_name, latitude, longitude, searched_keyword, nearest_city)
     mycursor.execute(sql, val)
     mydb.commit()
 
@@ -76,10 +106,13 @@ def deleteQuestionMarksOnly(mydb, mycursor):
         mycursor.execute(sql)
         mydb.commit()
 
-def mostUsedKeywords(ville,pays):
-    pass
-# SELECT label, city_name,count(*)
-# FROM keyword
-# WHERE city_name like "Grenoble"
-# GROUP BY city_name,label
-# ORDER BY `count(*)` DESC
+def mostUsedKeywords(mycursor,ville,nbmax):
+    mycursor.execute("SELECT label, city_name,count(*) FROM keyword WHERE city_name like '"+ville+"' GROUP BY city_name,label ORDER BY `count(*)` DESC")
+    myresult = mycursor.fetchall()
+    if(myresult):
+        print("Liste des",nbmax,"mots-clés (keywords) les plus utilisés dans les tweets de la ville de",ville,":")
+        for i,line in enumerate(myresult):
+            if(i<nbmax):
+                print("-",line[0],"("+str(line[2])+")")
+    else:
+        print("Aucun mot-clé n'a été enregistré dans la ville de",ville+".")
