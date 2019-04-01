@@ -67,8 +67,6 @@ def addTweet(mydb, mycursor, tweet_number, created_at, text, user_id, user_name,
         - searched_keyword (str) : searched_keyword of the tweet
         - nearest_city (str) : nearest_city of the tweet
     """
-    print(type(user_id),type(latitude))
-    time.sleep(8000)
     sql = "INSERT INTO tweet (numero_tweet, created_at, text, user_id, user_name, screen_name, \
         latitude, longitude, searched_keyword, nearest_city) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
     val = (tweet_number, created_at, text, user_id, user_name, screen_name, latitude, longitude, searched_keyword, nearest_city)
