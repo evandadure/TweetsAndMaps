@@ -64,9 +64,8 @@ def addTweet(mydb, mycursor, tweet_number, created_at, text, user_id, user_name,
         - screen_name (str) : the tweet's user screen name
         - latitude (float) : the latitude of the tweet's location
         - longitude (float) : the longitude of the tweet's location
-        - searched_keyword (str) :
-    Returns :
-        - d (datetime.datetime) : a datetime object
+        - searched_keyword (str) : searched_keyword of the tweet
+        - nearest_city (str) : nearest_city of the tweet
     """
     print(type(user_id),type(latitude))
     time.sleep(8000)
@@ -77,16 +76,42 @@ def addTweet(mydb, mycursor, tweet_number, created_at, text, user_id, user_name,
     mydb.commit()
 
 def addWord(mydb, mycursor,word):
+    """
+    Adds a word in the database
+    ----------
+    Parameters :
+        - mydb (mysql.connector.connection.MySQLConnection) : the database connection
+        - mycursor (mysql.connector.cursor.MySQLCursor) : a cursor of the connection
+        - word (str) : a word
+    """
     sql = "REPLACE INTO word (label) VALUES ('"+word+"')"
     mycursor.execute(sql)
     mydb.commit()
 
 def addCity(mydb, mycursor,city):
+    """
+    Adds a city in the database
+    ----------
+    Parameters :
+        - mydb (mysql.connector.connection.MySQLConnection) : the database connection
+        - mycursor (mysql.connector.cursor.MySQLCursor) : a cursor of the connection
+        - city (str) : a city
+    """
     sql = "REPLACE INTO city (city_name) VALUES ('"+city+"')"
     mycursor.execute(sql)
     mydb.commit()
 
 def addKeywords(mydb, mycursor,numero_tweet, city, wordList):
+    """
+    Adds a keyword in the database
+    ----------
+    Parameters :
+        - mydb (mysql.connector.connection.MySQLConnection) : the database connection
+        - mycursor (mysql.connector.cursor.MySQLCursor) : a cursor of the connection
+        - numero_tweet (str) : a numero_tweet
+        - city (str) : a city
+        - wordList (str) : a word
+    """
     addCity(mydb, mycursor,city)
     for word in wordList:
         addWord(mydb, mycursor,word)
@@ -96,6 +121,13 @@ def addKeywords(mydb, mycursor,numero_tweet, city, wordList):
         mydb.commit()
 
 def deleteQuestionMarksOnly(mydb, mycursor):
+    """
+    delete question marks from keyword and word
+    ----------
+    Parameters :
+        - mydb (mysql.connector.connection.MySQLConnection) : the database connection
+        - mycursor (mysql.connector.cursor.MySQLCursor) : a cursor of the connection
+    """
     for i in range(100):
         str = ""
         for j in range(i):
@@ -107,6 +139,14 @@ def deleteQuestionMarksOnly(mydb, mycursor):
         mydb.commit()
 
 def mostUsedKeywords(mycursor,ville,nbmax):
+    """
+    Select the first "nbmax" most used keywords
+    ----------
+    Parameters :
+        - mycursor (mysql.connector.cursor.MySQLCursor) : a cursor of the connection
+        - ville (str) : a city
+        - nbmax (str) : the number of the most used keyword we want
+    """
     mycursor.execute("SELECT label, city_name,count(*) FROM keyword WHERE city_name like '"+ville+"' GROUP BY city_name,label ORDER BY `count(*)` DESC")
     myresult = mycursor.fetchall()
     if(myresult):

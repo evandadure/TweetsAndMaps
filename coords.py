@@ -7,6 +7,19 @@ import urllib.request
 # Ces méthodes font la moyennes des valeurs du "polygone" de la localisation d'un tweet
 # =============================================================================
 def getLongAndLat(listeCouplesCoord):
+    """
+    Parse the list that was entered as a param into two lists, to separate the
+    coordonates
+
+    Parameters
+    ----------
+    list : listeCouplesCoord
+        a list that contains lists of coords
+    Returns
+    -------
+        tuple(list,list) :
+            a tuple of lists, longitude and latitude
+    """ 
     listeLongitude = []
     listeLatitude = []
     for couple in listeCouplesCoord:
@@ -15,13 +28,55 @@ def getLongAndLat(listeCouplesCoord):
     return (listeLongitude,listeLatitude)
 
 def moyList(list):
+    """
+    calculate the mean of the list
+
+    Parameters
+    ----------
+    list : list
+        a list that contains integer/float
+    Returns
+    -------
+        numeric :
+            the list's mean
+    """ 
     return (sum(list)/len(list))
 
 
 def centrePolygone(list_Longitude, list_Latitude):
+    """
+    determine the center of the polygon from its coordinate
+
+    Parameters
+    ----------
+    list(numeric) : list_Longitude
+        list of all its longitudes
+    list(numeric) : list_Latitude
+        list of all its latitude
+    Returns
+    -------
+        list[numeric, numeric]:
+            a list of the mean of the longitudes and the mean of the latitudes
+    """ 
     return [moyList(list_Longitude), moyList(list_Latitude)]
 
 def is_in_polygon(lat,long,polygonCity):
+    """
+    Determine if a coordinate is in a polygon of a city
+
+    Parameters
+    ----------
+    numeric : lat
+        latitude of the point
+    numeric : long
+        longitude of the point
+    list[tuple(coordinates)] : polygonCity
+        a list of coordinates that circle the city
+    Returns
+    -------
+        boolean:
+            a boolean, true if the point is in the polygon, false otherwise
+    """ 
     #création des différentes arêtes composant le polygone (en "joignant" les sommets 2 à 2)
     #le premier sommet et le dernier sont les mêmes, donc inutile de les lier entre eux
     nombre_intersections = 0
@@ -49,11 +104,39 @@ def is_in_polygon(lat,long,polygonCity):
         return False
 
 def get_address(lat,long):
+    """
+    Ask an API for the exact address of coordinates
+
+    Parameters
+    ----------
+    numeric : lat
+        latitude of the point
+    numeric : long
+        longitude of the point
+    Returns
+    -------
+        str:
+            the address of the coordinates
+    """     
     geolocator = geopy.Nominatim(user_agent="monAppTwitter")
     location = geolocator.reverse(str(lat)+','+str(long),addressdetails=True)
     return location.raw
 
 def get_polygon_city(cityName,country):
+    """
+    Ask an API for the coordinates that circle a city
+
+    Parameters
+    ----------
+    str : cityName
+        Name of the city
+    str : country
+        name of the country
+    Returns
+    -------
+        list(tuple(coordinates)):
+            a list of coordinates
+    """     
     geolocator = geopy.Nominatim(user_agent="monAppTwitter")
     location = geolocator.geocode(cityName+","+country)
     osm_id = location.raw["osm_id"]
@@ -66,6 +149,20 @@ def get_polygon_city(cityName,country):
     return cityCoords
 
 def getCenterCoords(ville,pays):
+    """
+    Ask an API for the coordinates that are at the center of a city
+
+    Parameters
+    ----------
+    str : ville
+        Name of the city
+    str : pays
+        name of the country
+    Returns
+    -------
+        tuple(coordinates):
+            a tuple of coordinates
+    """  
     geolocator = geopy.Nominatim(user_agent="monAppTwitter")
     location = geolocator.geocode(ville+","+pays)
     return [location.latitude, location.longitude]
